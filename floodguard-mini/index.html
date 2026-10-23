@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#081321">
+    <meta name="description" content="FloodGuard AI monitors official SACHET disaster alerts across India.">
+    <title>FloodGuard AI — National Disaster Alert Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="api.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="FloodGuard AI home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none">
+              <path d="M20 4 34 10v9c0 9-6 14-14 18C12 33 6 28 6 19v-9l14-6Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M11 23c3-3 5 3 9 0s6 3 9 0M14 17l6-6 6 6M20 11v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <span class="brand-name">FloodGuard <strong>AI</strong></span>
+            <span class="brand-subtitle">National Disaster Alert Monitor</span>
+          </span>
+        </a>
+        <div class="header-actions">
+          <a class="source-badge" href="https://sachet.ndma.gov.in/" target="_blank" rel="noreferrer">
+            <span class="source-dot" aria-hidden="true"></span>
+            <span><strong>SACHET</strong><small>NDMA source</small></span>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3h8v8M13 3 6 10M11 9v4H3V5h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <button class="refresh-button" id="refresh-button" type="button">
+            <svg class="refresh-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8A6.7 6.7 0 0 0 4.7 5.5L3 7m0 0V3.8M3 7h3.2M3.5 12A6.7 6.7 0 0 0 15.3 14.5L17 13m0 0v3.2M17 13h-3.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> LIVE NATIONAL MONITOR</div>
+            <h1 id="page-title">Predict before<br class="mobile-break"> <span>it floods.</span></h1>
+            <p class="hero-copy">Official disaster alerts, brought into focus.<br class="desktop-break"> Stay informed. Be ready.</p>
+          </div>
+          <div class="update-card" aria-live="polite">
+            <span class="update-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l2.8 1.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <span><small>LAST SUCCESSFUL UPDATE</small><strong id="last-updated">Waiting for live data</strong></span>
+          </div>
+        </section>
+
+        <section class="status-banner" id="status-banner" role="status" aria-live="polite" hidden>
+          <span class="status-symbol" aria-hidden="true">!</span>
+          <div><strong id="status-title"></strong><p id="status-message"></p></div>
+          <button id="retry-button" type="button">Retry</button>
+        </section>
+
+        <section class="metrics" aria-label="Alert summary">
+          <article class="metric-card metric-total">
+            <div class="metric-top"><span class="metric-label">TOTAL ALERTS</span><span class="metric-icon total-icon" aria-hidden="true">◎</span></div>
+            <strong class="metric-value" id="total-count">—</strong>
+            <span class="metric-caption">Unique alerts returned by SACHET</span>
+          </article>
+          <article class="metric-card metric-severe">
+            <div class="metric-top"><span class="metric-label">SEVERE</span><span class="metric-icon severe-icon" aria-hidden="true">!</span></div>
+            <strong class="metric-value" id="severe-count">—</strong>
+            <span class="metric-caption">Explicit high-severity alerts</span>
+          </article>
+          <article class="metric-card metric-active">
+            <div class="metric-top"><span class="metric-label">ACTIVE NOW</span><span class="metric-icon active-icon" aria-hidden="true"><span></span></span></div>
+            <strong class="metric-value" id="active-count">—</strong>
+            <span class="metric-caption">Within reported validity times</span>
+          </article>
+          <article class="metric-card metric-flood">
+            <div class="metric-top"><span class="metric-label">FLOOD-RELATED</span><span class="metric-icon flood-icon" aria-hidden="true">⌁</span></div>
+            <strong class="metric-value" id="flood-count">—</strong>
+            <span class="metric-caption">Matched from reported alert text</span>
+          </article>
+        </section>
+
+        <section class="alerts-section" aria-labelledby="alerts-title">
+          <div class="section-heading">
+            <div>
+              <div class="eyebrow section-eyebrow"><span class="eyebrow-line"></span> SACHET ALERT FEED</div>
+              <h2 id="alerts-title">Disaster alerts <span class="live-pill"><span></span> LIVE FEED</span></h2>
+            </div>
+            <span class="result-count" id="result-count" aria-live="polite"></span>
+          </div>
+
+          <form class="filters" id="filter-form" role="search">
+            <label class="search-control">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m13.2 13.2 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <span class="visually-hidden">Search alerts</span>
+              <input id="search-input" type="search" placeholder="Search state, district, location or alert…" autocomplete="off">
+              <kbd>/</kbd>
+            </label>
+            <label class="select-control"><span class="visually-hidden">Filter by severity</span>
+              <select id="severity-filter"><option value="all">All severities</option><option value="severe">Severe</option><option value="warning">Warning</option><option value="watch">Watch</option><option value="unknown">Unspecified severity</option></select>
+            </label>
+            <label class="select-control"><span class="visually-hidden">Filter by disaster type</span>
+              <select id="type-filter"><option value="all">All disaster types</option></select>
+            </label>
+            <label class="select-control validity-select"><span class="visually-hidden">Filter by validity</span>
+              <select id="validity-filter"><option value="active">Active only</option><option value="all">All validity states</option><option value="expired">Expired</option><option value="upcoming">Upcoming</option><option value="unknown">Unknown validity</option></select>
+            </label>
+          </form>
+
+          <div class="feed-meta">
+            <span><span class="feed-pulse" aria-hidden="true"></span> Official alerts from the SACHET portal</span>
+            <span id="feed-refresh-state">Auto-refresh every 5 minutes</span>
+          </div>
+
+          <div class="loading-state" id="loading-state" aria-live="polite" hidden>
+            <span class="spinner" aria-hidden="true"></span><span>Retrieving official alerts…</span>
+          </div>
+          <div class="empty-state" id="empty-state" hidden>
+            <span class="empty-icon" aria-hidden="true">⌕</span>
+            <h3 id="empty-title">No matching alerts</h3>
+            <p id="empty-message">Try adjusting your search or filters.</p>
+            <button id="clear-filters" type="button">Clear filters</button>
+          </div>
+          <div class="alert-list" id="alert-list" aria-live="polite"></div>
+          <p class="matching-note">Flood-related means the reported disaster type or title contains “flood”, “inundation”, or “waterlogging”. Unknown severity and validity remain unclassified.</p>
+        </section>
+      </main>
+      <footer class="footer">
+        <span>FloodGuard AI <span class="footer-dot">·</span> Predict Before It Floods</span>
+        <span>Alert information is provided by <a href="https://sachet.ndma.gov.in/" target="_blank" rel="noreferrer">SACHET, NDMA</a>. Follow official guidance.</span>
+      </footer>
+    </div>
+  </body>
+</html>
