@@ -1,0 +1,35 @@
+# Credentials and local environment files
+.env
+.env.*
+!.env.example
+
+# Python environments, bytecode, and generated processing output
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+NEW_MODEL-_LOAD-main/processed/
+
+# Frontend dependencies and generated build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Local/private datasets and runtime output
+private-data/
+DATA/private/
+NEW_MODEL-_LOAD-main/DATA/private/
+instance/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
