@@ -1,4 +1,5 @@
 from __future__ import annotations
+import hashlib
 
 import json
 import re
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = PROJECT_ROOT / "DATA"
+DATA_DIR = PROJECT_ROOT / "DATA_CLEANED"
 PROCESSED_DIR = PROJECT_ROOT / "processed"
 FEATURES_PATH = PROCESSED_DIR / "cwc_rainfall_features.csv"
 STATIONS_PATH = PROCESSED_DIR / "stations.csv"
@@ -115,7 +116,30 @@ def process_cwc_data(
     data_dir = Path(data_dir)
     processed_dir = Path(processed_dir)
     processed_dir.mkdir(parents=True, exist_ok=True)
-    input_files = sorted(data_dir.rglob("*.csv")) if data_dir.exists() else []
+    all_files = sorted(data_dir.rglob("*.csv"))
+
+    
+    input_files = []
+    seen_hashes = set()
+    skipped_duplicates = []
+
+    for file in all_files:
+        digest = hashlib.sha256(file.read_bytes()).hexdigest()
+
+        if digest in seen_hashes:
+            skipped_duplicates.append(file.name)
+            continue
+
+        seen_hashes.add(digest)
+        input_files.append(file)
+
+    print(f"CSV files found: {len(all_files)}")
+    print(f"Unique CSV files to process: {len(input_files)}")
+    print(f"Duplicate CSV files skipped: {len(skipped_duplicates)}")
+
+    for name in skipped_duplicates:
+        print(f"Skipped duplicate: {name}")
+
     report = _new_report()
     report["source_directory"] = str(data_dir)
     if not input_files:
